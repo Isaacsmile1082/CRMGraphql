@@ -2,33 +2,32 @@ const { ApolloServer, gql } = require('apollo-server');
 const connectDB = require('./config/db');
 const resolvers = require('./db/resolvers')
 const typeDefs = require('./db/shema');
-
-
+const jwt = require('jsonwebtoken')
+require('dotenv').config({path: '.env'});
 
 connectDB();
 
-const cursos = [
-    {
-        titulo: 'JavaScript Moderno Guía Definitiva Construye +10 Proyectos',
-    },
-    {
-        titulo: 'React – La Guía Completa: Hooks Context Redux MERN +15 Apps',
-        tecnologia: 'React',
-    },
-    {
-        titulo: 'Node.js – Bootcamp Desarrollo Web inc. MVC y REST API’s',
-        tecnologia: 'Node.js'
-    }, 
-    {
-        titulo: 'ReactJS Avanzado – FullStack React GraphQL y Apollo',
-        tecnologia: 'React'
-    }
-];
 
 
 const server = new ApolloServer({
     typeDefs,
-    resolvers
+    resolvers,
+    context: ({req}) => {
+        
+        const token = req.headers['authorization' || ''];
+        if(token) {
+            try {
+                const user = jwt.verify(token, process.env.SECRET);
+                
+                return {
+                    user
+                }
+            } catch (error) {
+                console.log('There was an error');
+                console.log(error);
+            }
+        }
+    }
 })
 
 //arrancar servidor
